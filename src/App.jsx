@@ -100,8 +100,11 @@ export default function App() {
   };
 
   // ── Stream Helper ─────────────────────────────────────────────────────────
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
   const handleStreamRequest = async (url, bodyData, onChunk, onComplete, signal) => {
-    const response = await fetch(url, {
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bodyData),
