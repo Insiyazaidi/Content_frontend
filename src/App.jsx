@@ -11,6 +11,11 @@ import {
 } from 'lucide-react';
 import TEMPLATES from './data/templates';
 
+// ── API Base URL ───────────────────────────────────────────────────────────────────
+// Vite bakes VITE_API_URL at build time. Falls back to '' (relative) for same-origin setups.
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+
 export default function App() {
   // ── Core State ────────────────────────────────────────────────────────────
   const [prompt, setPrompt] = useState('');
@@ -100,7 +105,6 @@ export default function App() {
   };
 
   // ── Stream Helper ─────────────────────────────────────────────────────────
-  const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
   const handleStreamRequest = async (url, bodyData, onChunk, onComplete, signal) => {
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
@@ -130,6 +134,8 @@ export default function App() {
       buffer = lines.pop() || '';
 
       for (const line of lines) {
+        // Skip SSE keep-alive comments (e.g., ": keep-alive")
+        if (line.startsWith(':')) continue;
         if (!line.startsWith('data: ')) continue;
         try {
           const data = JSON.parse(line.slice(6));
